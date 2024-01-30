@@ -18,8 +18,8 @@
 2. **ansible/**: 
    - Holds your Ansible playbook (`setup.yml`) and dynamic inventory file. The dynamic inventory is generated during the CI/CD pipeline execution.
 
-3. **helm/**: 
-   - Contains Helm chart configurations for the whoami application.
+3. **argocd-application-whoami.yaml**: 
+   - Contains ArgoCD app definition to manage chart configurations for the whoami application.
 
 4. **terraform/**: 
    - Contains all Terraform-related files for provisioning infrastructure.
