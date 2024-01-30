@@ -1,0 +1,22 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Update and upgrade apt packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install necessary packages
+      apt:
+        name: 
+          - curl
+          - apt-transport-https
+          - tcpdump
+          - nc
+          - mc
+
+    - name: Install k3s
+      shell: |
+        curl -sfL https://get.k3s.io | sh -
+      args:
+        executable: /bin/bash

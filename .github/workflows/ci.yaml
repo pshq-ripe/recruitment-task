@@ -1,0 +1,54 @@
+name: Deploy Infrastructure and Application (cool-software-dev)
+
+on: [push]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@master
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        export_default_credentials: true
+
+    - name: Initialize Terraform
+      run: |
+        cd terraform
+        terraform init
+
+    - name: Apply Terraform
+      run: |
+        cd terraform
+        terraform apply -auto-approve
+
+    - name: Generate Dynamic Inventory for Ansible
+      run: |
+        echo "[k3s]" > ansible/inventory
+        echo "$(terraform output -state=terraform/terraform.tfstate instance_ip)" >> ansible/inventory
+
+    - name: Run Ansible Playbook
+      run: |
+        ansible-playbook -i ansible/inventory ansible/setup.yml
+
+    - name: Setup Helm
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+    - name: Install ArgoCD
+      run: |
+        helm repo add argo https://argoproj.github.io/argo-helm
+        helm repo update
+        helm install argocd argo/argo-cd --namespace argocd --create-namespace
+
+    - name: Deploy Application using ArgoCD
+      run: |
+        # Add the repository containing your application definition to ArgoCD
+        argocd repo add https://github.com/pshq-ripe/recruitment-task --insecure-ignore-host-key
+        # Create the ArgoCD Application
+        kubectl apply -f argocd-application-whoami.yaml
