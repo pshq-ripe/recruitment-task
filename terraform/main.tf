@@ -18,6 +18,6 @@ resource "google_compute_instance" "this" {
   }
 
   metadata = {
-    ssh-keys = "ubuntu:${var.ssh_public_key}"
+    ssh-keys = format("ubuntu:%s", var.ssh_public_key)
   }
 }
